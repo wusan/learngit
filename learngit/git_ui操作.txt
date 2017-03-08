@@ -1,0 +1,13 @@
+如何进行分支与主分支文件合并 并切换到主分支？
+1.新建文件q1.txt
+2.create breach，弹出框中输入名字：a8 确定。
+3.switch/checkout:
+   switch to :   branch选择a8   确定
+4.git-commit->a8 ,进行commit和push 提交到a8分支以及push到github
+5.switch/checkout:
+  switch to :   branch选择master   确定   【回到主分支】
+       弹出框中底部有一个merge。可以进行选，进行合并。。
+              From ：branch：选择a8,则实现主分支与a8分支合并。
+且当前分支为master。。
+
+5.1 右击菜单中也有merge，进行分支合并。。。
