@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title></title>
+</head>
+<body>
+<script type="text/javascript"> 
+let arrC2=[],arrC3=[];
+for(attr in Object){
+	arrC3.push(attr);
+}
+console.log("object下可枚举的属性",arrC3);//for in 拿不到
+for(attr in Array){
+	arrC2.push(attr);
+}
+console.log("Array下可枚举的属性",arrC2);//for in 拿不到
+</script>
+
+<pre>
+普通属性的默认值
+{
+	configurable:true,  可配置
+	enumerable:true,	可枚举
+	value:2,			值
+	writable:true		可写
+}
+
+不变性：希望属性或读写不可改变。
+		只影响直接属性，如果目标对象引用了其他对象(arr,obj,fun)，其内容依然可变【可深度冻结，让其任何都不能修改】。	
+<script type="text/javascript"> 
+/**
+1.对象常量
+
+	通过writable:false[不能改值]和configurable:false[不可配置，即不能用defineProperty来修改属性描述符]就可建立常量，
+	即es6的const [不可修改 删除重定义]
+**/
+var objA={};
+Object.defineProperty(objA,"Fav",{
+	value:30,writable:false,configurable:false
+})
+
+/**
+2.Object.preventExtensions(..)禁止扩展：禁止对象添加属性且保留已有属性。
+  Object.isExtensible()：判断对象是否可扩展（是否可以在它上面添加新的属性）.
+  注意：只是不能扩展而不是不能修改原有属性值。。。
+**/
+var objC={a:3,arr:[1,3]};
+Object.preventExtensions(objC);
+objC.b=300;
+console.log("禁止扩展Object.preventExtensions",objC.b);//undefined [严格模式下报错]
+objC.arr.push(186);
+objC.a=139;
+console.log("objC是否可扩展",Object.isExtensible(objC));//false
+console.log("objC",objC); //{a: 139, arr:[1,3,139]}      注意：只是不能扩展而不是不能修改。。。
+
+
+
+
+
+/**
+3.密封 Object.seal(..)：
+	其实就是对一个对象调用Object.preventExtensions，且设置configurable:false 【不能调用defineProperty来修改属性描述符】
+	
+	a.密封后不能添加新属性，也不能重新配置或删除任何现有属性，但是虽然可修改属性的值
+	b.为对象的所有属性将 configurable 特性设置为 false
+	
+但是有个例外，js允许非配置属性从可写状态变成只读状态，
+	因为数组的属性length总是可写的且不可配置。如果没有这个例外就不能冻结数组。	
+	
+Object.isSealed():布尔值，判断对象是否是密封的（sealed）。
+	
+**/
+
+var objD={
+	a:1,b:2,e:['1','2']
+}
+Object.seal(objD);
+objD.a=100;//已有属性，可修改值
+delete objD.b;//但是不可删除。。删除无效。。。
+objD.c=300;//无法添加，添加无效
+
+objD.e.push("300");//可添加
+console.log("密封 Object.seal",objD);//{a: 100, b: 2,e:['1','2','300']}
+console.log("objD是否是密封的",Object.isSealed(objD));//true
+
+
+/**
+4.冻结 Object.freeze(..):冻结一个对象.实际上就是对一个对象调用Object.seal(..)，并把writable:false，这样就无法修改值了。
+	但是如果对象属性引用其他对象，则不受影响。
+	深度冻结：Object.freezz()，然后遍历它引用的所有对象并在这些对象上调用Object.freeze。
+			  注意：有可能无意中冻结其他(共享)对象。
+			  
+ 冻结对象是指那些不能添加新的属性，不能修改已有属性的值，不能删除已有属性，
+	以及不能修改已有属性的可枚举性、可配置性、可写性的对象。也就是说，这个对象永远是不可变的
+**/
+var objE={
+	a:12,b:24,e:['16','27'],m:{a:2},f1:function(){console.log('fn怎么样')}
+}
+//单一属性。string number boolean等直接冻结
+Object.freeze(objE);
+objE.a=1000;//无效 
+delete objE.b;//无效
+
+
+//非单一数组：数组
+objE.e.push(456);//可以添加
+console.log("冻结对象 Object.freeze",objE);//{a:12,b:24,e:['16','27',456]}
+Object.freeze(objE.e);//深度冻结
+//objE.e.push(4256);//报错：Uncaught TypeError：Can't add property 3, object is not extensible
+
+
+
+//非单一数组：对象
+objE.m.b=300;//添加成功
+Object.freeze(objE.m);//深度冻结
+objE.m.c=500;//添加失败。。
+
+
+
+//非单一数组：函数
+objE.f1=function(){console.log('fn2222怎么样')};//改变成功
+console.log("看看objE.f1改变了没有",objE.f1.toString());//function (){console.log('fn怎么样')}
+Object.freeze(objE.f1);
+objE.f1=function(){console.log('fn333')};//改变失败。。
+console.log("看看objE.f1改变了没有",objE.f1.toString());//function (){console.log('fn怎么样')}
+
+
+</script>
+<pre>  
+Object.isFrozen():判断一个对象是否被冻结.
+</pre>
+<script type="text/javascript"> 
+objF={a:3,b:{e:3}}
+console.log("objF是否被冻结",Object.isFrozen(objF));//false
+Object.freeze(objF);
+console.log("objF是否被冻结",Object.isFrozen(objF));//true
+console.log("objF.b是否被冻结",Object.isFrozen(objF.b));//false
+
+//一个对象的深度冻结。。[处理复杂数据类型:object,fun,arr等]
+function deepFreeze(obj){
+	var prop,propKey;
+	Object.freeze(obj);//先冻结第一层对象
+	for(propKey in obj){//看有没有属性了。没了就退出了。
+		prop=obj[propKey];
+		//判断：hasOwnProperty 获取自身的 属性而非继承过来的。
+		if(!obj.hasOwnProperty(propKey)|| !(typeof prop==='object') || Object.isFrozen(prop)){
+			continue;
+		}
+		deepFreeze(prop);//递归
+	}
+}
+    deepFreeze(objF);
+
+
+/**
+说明：
+typeof [1]    				"object"
+typeof (b={})				"object"
+
+typeof (a=function(){})		"function"
+
+**/
+</script>
+
+</body>
+</html>

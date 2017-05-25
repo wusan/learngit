@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title></title>
+</head>
+<body>
+<pre> 
+p111.属性描述符
+	1.es5开始，所有属性都有属性描述符
+		getOwnPropertyDescriptor 获取自己的属性描述符
+	2.创建普通属性的默认值
+			{
+				configurable:true,  可配置
+				enumerable:true,	可枚举
+				value:2,			值
+				writable:true		可写
+			}
+	3.使用Object.defineProperty(..)添加或修改一个已有属性		
+</pre>
+
+<script>
+var obj={a:2};
+console.log("obj.a属性描述符:",Object.getOwnPropertyDescriptor(obj,'a'));
+/**
+	{configurable:true, enumerable:true,value:2,writable:true}
+**/
+
+
+Object.defineProperty(obj,'a',{
+	configurable:false, enumerable:false,value:2,writable:false
+})
+console.log('Object.defineProperty修改后的',Object.getOwnPropertyDescriptor(obj,'a'));
+/**
+	{configurable:false, enumerable:false,value:2,writable:false}
+**/
+
+</script>
+<pre> 
+writable:是否可修改属性值
+configurable:可配置的。只要属性是可配置的，就可以用defineProperty来修改属性描述符,否则报错
+				a.configurable是单向操作，无法撤销,但是configurbale:false,依然可以修改writable由true改为false，但是
+					writable不能由false变成true
+				b.configurable:false禁止删除这个属性	
+enumerable:默认为true(一个对象中),设置为false，则可实现for in 不能进行枚举
+
+
+		
+</pre>
+<script type="text/javascript"> 
+//"use strict"
+obj.a=100;//"use strict" 严格模式下报错 ：Cannot assign to read only property 'a' of object '#<Object>'  
+console.log("无法修改obj.a的值：",obj.a);//2
+
+
+
+//configurable:false
+
+Object.defineProperty(obj,'b',{
+	value:20,writable:true,
+	configurable:false,//不可配置
+	enumerable:true
+});
+obj.b=21;
+console.log("configurable:false可修改值",obj.b);//21
+console.log("configurable是单向操作，无法撤销");
+/***
+Object.defineProperty(obj,'b',{
+	value:22,writable:true,
+	configurable:true,//不可配置
+	enumerable:true
+});//Cannot redefine property: b
+***/
+delete obj.b;
+console.log('configurable:false禁止删除这个属性	',obj.b);//21
+
+
+
+//enumerable:false
+
+obj.c=30;//可以枚举
+Object.defineProperty(obj,'d',{
+	value:10,enumerable:false
+});//enumerable:false 不能枚举
+for(a in obj){
+	console.log("属性",a);
+}//b c 而没有d
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
